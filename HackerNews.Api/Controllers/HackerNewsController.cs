@@ -10,6 +10,8 @@ namespace HackerNews.Api.Controllers
     {
         private readonly IHackerNewsService _hackerNewsService;
         private readonly ILogger<HackerNewsController> _logger;
+        private const int MaxStories = 100;
+        private const int DefaultStories = 10;
 
         public HackerNewsController(
             IHackerNewsService hackerNewsService,
@@ -24,17 +26,19 @@ namespace HackerNews.Api.Controllers
         /// </summary>
         /// <param name="n">Number of stories to return (default 10, max 100)</param>
         [HttpGet]
-        public async Task<ActionResult<List<BestStoryDto>>> Get([FromQuery] int n = 10)
+        public async Task<ActionResult<List<BestStoryDto>>> Get([FromQuery] int n = DefaultStories)
         {
-            if (n < 1 || n > 100)
-            {
-                _logger.LogWarning("Invalid value for n: {N}", n);
-                return BadRequest("n must be between 1 and 100");
-            }
+            // Validate input early
+            if (n < 1) n = DefaultStories;
+            if (n > MaxStories) n = MaxStories;
 
             try
             {
-                var stories = await _hackerNewsService.GetBestStoriesAsync(n);
+                var stories = await _hackerNewsService.GetBestStoriesAsync(n).ConfigureAwait(false);
+
+                if (stories == null || stories.Count == 0)
+                    return NotFound();
+
                 return Ok(stories);
             }
             catch (Exception ex)

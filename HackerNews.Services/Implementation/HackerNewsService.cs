@@ -45,14 +45,14 @@ namespace HackerNews.Services.Implementation
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_bestStoriesCacheMinutes);
                     try
                     {
-                        return await client.GetFromJsonAsync<List<int>>(_bestStoriesUrl) ?? new List<int>();
+                        return await client.GetFromJsonAsync<List<int>>(_bestStoriesUrl).ConfigureAwait(false) ?? new List<int>();
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to fetch best stories from {Url}", _bestStoriesUrl);
                         return new List<int>();
                     }
-                });
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -67,29 +67,27 @@ namespace HackerNews.Services.Implementation
             }
 
             var semaphore = new SemaphoreSlim(_maxConcurrentRequests);
-            var tasks = new List<Task<BestStoryDto?>>();
 
-            foreach (var id in storyIds ?? Enumerable.Empty<int>())
-            {
-                await semaphore.WaitAsync();
-                tasks.Add(Task.Run(async () =>
+            // Create tasks up front, let SemaphoreSlim throttle concurrency inside each task
+            var fetchTasks = (storyIds ?? Enumerable.Empty<int>())
+                .Take(n)
+                .Select(async id =>
                 {
+                    await semaphore.WaitAsync().ConfigureAwait(false);
                     try
                     {
-                        return await GetStoryAsync(client, id);
+                        return await GetStoryAsync(client, id).ConfigureAwait(false);
                     }
                     finally
                     {
                         semaphore.Release();
                     }
-                }));
-                if (tasks.Count >= n) break;
-            }
+                }).ToList();
 
             BestStoryDto?[] stories;
             try
             {
-                stories = await Task.WhenAll(tasks);
+                stories = await Task.WhenAll(fetchTasks).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -104,17 +102,21 @@ namespace HackerNews.Services.Implementation
                 .ToList()!;
         }
 
-        private async Task<BestStoryDto?> GetStoryAsync(HttpClient client, int id)
+        private async ValueTask<BestStoryDto?> GetStoryAsync(HttpClient client, int id)
         {
             try
             {
+                // Try to get from cache; if present, short-circuit with ValueTask for efficiency
+                if (_cache.TryGetValue($"story_{id}", out BestStoryDto? cachedStory) && cachedStory != null)
+                    return cachedStory;
+
                 return await _cache.GetOrCreateAsync($"story_{id}", async entry =>
                 {
                     entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(_storyCacheMinutes);
                     var url = string.Format(_itemUrlTemplate, id);
                     try
                     {
-                        var story = await client.GetFromJsonAsync<HackerNewsStory>(url);
+                        var story = await client.GetFromJsonAsync<HackerNewsStory>(url).ConfigureAwait(false);
                         if (story == null)
                         {
                             _logger.LogWarning("Story with ID {Id} not found at {Url}", id, url);
@@ -136,12 +138,12 @@ namespace HackerNews.Services.Implementation
                         _logger.LogError(ex, "Failed to fetch story with ID {Id} from {Url}", id, url);
                         return null;
                     }
-                });
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while retrieving story with ID {Id} from cache.", id);
-                throw;
+                return null;
             }
         }
     }

@@ -1,9 +1,11 @@
 ﻿using HackerNews.Api.Controllers;
 using HackerNews.Models;
 using HackerNews.Services;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Net;
 
 namespace HackerNews.UnitTests.Api.Controllers
 {
@@ -20,17 +22,19 @@ namespace HackerNews.UnitTests.Api.Controllers
             _controller = new HackerNewsController(_mockService.Object, _mockLogger.Object);
         }
 
-        [Fact]
-        public async Task Get_ReturnsOk_WithStories_WhenNIsValid()
+        [Theory]
+        [InlineData(0)]
+        [InlineData(101)]
+        [InlineData(-5)]
+        public async Task Get_ReturnsOk_WithStories_WhenNIsValid(int n)
         {
             // Arrange
-            int n = 5;
             var stories = new List<BestStoryDto>
             {
                 new BestStoryDto { Title = "Story 1", Uri = "http://1", PostedBy = "user1", Time = DateTime.UtcNow, Score = 100, CommentCount = 10 },
                 new BestStoryDto { Title = "Story 2", Uri = "http://2", PostedBy = "user2", Time = DateTime.UtcNow, Score = 90, CommentCount = 5 }
             };
-            _mockService.Setup(s => s.GetBestStoriesAsync(n)).ReturnsAsync(stories);
+            _mockService.Setup(s => s.GetBestStoriesAsync( It.IsAny<int>())).ReturnsAsync(stories);
 
             // Act
             var result = await _controller.Get(n);
@@ -40,27 +44,18 @@ namespace HackerNews.UnitTests.Api.Controllers
             var returnedStories = Assert.IsType<List<BestStoryDto>>(okResult.Value);
             Assert.Equal(stories, returnedStories);
         }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(101)]
-        [InlineData(-5)]
-        public async Task Get_ReturnsBadRequest_WhenNIsInvalid(int n)
+        [Fact]
+        public async Task Get_ReturnsBadRequest_WhenNoDataReturned()
         {
+            //Assert
+            int n = 5;
+
             // Act
             var result = await _controller.Get(n);
 
             // Assert
-            var badRequest = Assert.IsType<BadRequestObjectResult>(result.Result);
-            Assert.Equal("n must be between 1 and 100", badRequest.Value);
-            _mockLogger.Verify(
-                l => l.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Invalid value for n")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
+            var badRequest = Assert.IsType<NotFoundResult>(result.Result);
+            Assert.Equal(404, badRequest.StatusCode);
         }
 
         [Fact]
