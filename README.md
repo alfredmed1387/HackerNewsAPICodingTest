@@ -27,10 +27,15 @@ A coding challenge project built in **C#**, designed to interact with the Hacker
 
 ## ✨ Features
 
-- Fetches and displays top stories from Hacker News
-- Shows story details: title, author, score, and publication time
-- Simple command-line interface (CLI)
-- Error handling for API/network issues
+- Fetches and displays top stories from Hacker News via a RESTful API
+- Exposes an HTTP API endpoint to retrieve best stories, sorted by score
+- Displays story details: title, author, score, time, and comments
+- Implements asynchronous, parallel API calls for story details
+- In-memory caching for best stories and individual story responses
+- Robust error handling and logging for API/network issues
+- Configurable parameters (e.g., number of stories, cache durations)
+- Unit tests for controllers and services
+- Swagger/OpenAPI documentation for HTTP endpoints
 
 ---
 
@@ -51,69 +56,83 @@ dotnet restore
 ### Running the Project
 
 ```bash
-dotnet run
+dotnet run --project HackerNews.Api
 ```
+
+The API will be available at `https://localhost:5001/api/hackernews` (adjust for your environment).
+
+### API Usage
+
+- **GET** `/api/hackernews?n=20`  
+  Returns up to 20 best Hacker News stories, sorted by score.
+
+Swagger UI is available for interactive API exploration in development mode.
 
 ---
 
 ## 💡 Usage
 
-1. Run the application from the command line.
-2. The program will fetch and display the top Hacker News stories.
-3. Follow prompts (if any) to view more details about a story.
+1. Run the API project.
+2. Use a browser or a tool like curl/Postman to fetch top stories from the endpoint.
+3. Adjust the `n` query parameter as needed (default: 10, max: 100).
 
 ---
 
 ## 🛠️ Technologies Used
 
 - **C# / .NET 6+**
-- Hacker News REST API
+- ASP.NET Core Web API
+- MemoryCache for in-memory caching
+- xUnit, Moq for unit testing
+- Swagger/OpenAPI for documentation
 
 ---
 
 ## 🏗️ Architecture
 
-The project follows a simple, modular architecture leveraging .NET's best practices for maintainability and clarity. The application entry point is a CLI (Command Line Interface) that orchestrates API calls to the Hacker News REST API, processes results, and handles user interaction and error states. The codebase is organized so that core logic (API interaction, data parsing, and display logic) is separated for future extensibility and easy testing.
+The solution follows a layered architecture:
+- **Api Layer:** ASP.NET Core controllers expose HTTP endpoints.
+- **Service Layer:** Handles all business logic, external API calls, caching, and error handling.
+- **Models:** DTOs and domain models for data transfer and structure.
+- **Unit Tests:** Isolate and validate controller/service logic.
+
+**Key design points:**
+- All external calls to Hacker News use `HttpClientFactory` and async/await for efficiency.
+- SemaphoreSlim limits concurrent outbound requests for stability.
+- In-memory caching avoids redundant external API calls.
+- Logging is implemented at controller and service layers for observability.
+- Tests validate correctness and error handling paths.
 
 ---
 
 ## 📚 Assumptions
 
 - The Hacker News API is publicly available and does not require authentication.
-- Only the "top stories" endpoint is required for the core functionality.
-- The application runs in a console environment.
-- User input is minimal and does not require advanced validation.
+- Only the "best stories" endpoint is required for the core functionality; other endpoints (e.g., comments, user details) are not implemented.
+- The API is primarily read-only; no write or mutation operations are supported.
+- The application is hosted in a trusted environment (no advanced security or rate limiting is enforced).
+- Returned stories may be fewer than requested if the upstream API omits or removes stories.
+- All time values are returned as UTC.
+- Cache durations and concurrency limits are set for demonstration and may be tuned for production.
+- No persistent storage is used; all cache is in-memory and resets on application restart.
+- **Endpoint Parameter Assumptions:**
+  - The query parameter `n` in `/api/hackernews?n=VALUE` determines the number of top stories to return.
+  - The default value for `n` is 10 if not provided.
+  - The maximum allowed value for `n` is 100; any value above this is capped to 100.
+  - If `n` is less than 1, it is set to the default (10).
+  - Requests with invalid `n` values (negative, zero, or excessively high) are automatically adjusted and not rejected unless egregiously out of bounds.
+  - If no stories are found, a 404 response is returned.
+  - API is stateless and does not retain request context between calls.
 
 ---
 
-## 🌱 Future Enhancements (Performance-Focused)
+## 🌱 Future Enhancements
 
-- **Implement asynchronous and parallel API calls:** Fetch story details in parallel to minimize total loading time.
-- **Introduce local caching:** Cache previously fetched stories to reduce unnecessary API requests and improve responsiveness.
-- **Pagination and lazy loading:** Load and display stories incrementally (e.g., 20 at a time) to minimize memory and bandwidth usage.
-- **Optimize data processing:** Profile and refactor code to minimize CPU and memory consumption, especially when handling large datasets.
-- **Implement retry and backoff strategies:** Handle intermittent network issues gracefully without blocking UI or causing unnecessary load on the API.
-- **Configurable cache expiration:** Allow customization of cache duration for fresh vs. stale data trade-offs.
-- **Batch API requests (if supported):** Combine multiple story or comment requests in single network calls to reduce latency.
-- **Minimize allocations:** Use memory-efficient collections and avoid unnecessary object instantiation.
-- **Add diagnostics and logging:** Provide performance metrics and logging to help identify bottlenecks.
-- **Evaluate and use HTTP connection pooling:** Ensure HTTP connections are reused efficiently to reduce overhead.
+- **Advanced Pagination and Filtering:** Support paging, searching, and filtering stories by keyword, author, or time range.
+- **Distributed Caching:** Use Redis or another distributed cache to enable scaling across multiple server instances.
+- **Resilient HTTP Strategies:** Add retry, backoff, and circuit breaker policies with Polly.
+- **Batch API Requests:** Optimize outbound network calls by batching requests (if supported by the Hacker News API).
+- **Rate Limiting:** Enforce rate limits to protect the API and external resources.
+- **Authentication and Authorization:** Secure endpoints for restricted environments.
+- **User Input Validation Improvements:** Provide clearer feedback and error codes for out-of-bound parameter values.
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
-
----
-
-## 📄 License
-
-This project is currently unlicensed. Please request license information if you wish to use or contribute.
-
----
-
-## 🙏 Acknowledgments
-
-- [Hacker News](https://news.ycombinator.com/)
-- [Hacker News API](https://github.com/HackerNews/API)
