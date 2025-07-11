@@ -11,7 +11,7 @@ This project exposes a RESTful API endpoint designed to provide clients with a c
 - [About](#about)
 - [Features](#features)
 - [Getting Started](#getting-started)
-- [Usage](#usage)
+- [Endpoints](#endpoints)
 - [Technologies Used](#technologies-used)
 - [Architecture](#architecture)
 - [Assumptions](#assumptions)
@@ -43,7 +43,7 @@ This project exposes a RESTful API endpoint designed to provide clients with a c
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (v8.0 or newer)
+- [.NET SDK](https://dotnet.microsoft.com/download) (v8.0)
 
 ### Installation
 
@@ -61,13 +61,48 @@ dotnet run --project HackerNews.Api
 
 The API will be available at `https://localhost:7222/api/hackernews` (adjust for your environment).
 
-### API Usage
+---
 
-- **GET** `/api/hackernews?n=20`  
-  Returns up to 20 best Hacker News stories, sorted by score.
+## 🛣️ Endpoints
 
-Swagger UI is available for interactive API exploration in development mode.
+### GET `/api/hackernews?n=VALUE`
+ 
+Returns a list of top Hacker News stories sorted by score.
+ 
+#### Parameter Validation
+ 
+ - **n** (optional, integer): Number of top stories to return.
+   - **Default:** 10 (if not provided or invalid)
+   - **Minimum:** 1 (values less than 1 are set to 10)
+   - **Maximum:** 100 (values above 100 are capped to 100)
+   - Non-integer or negative values are adjusted to the default (10).
+   - If no stories are found, a `404 Not Found` response is returned.
+ 
+#### Example Request
+ 
+```http
+GET /api/hackernews?n=5
+```
+ 
+#### Example Response
+ 
+```json
+[
+  {
+    "id": 123456,
+    "title": "Example Hacker News Story",
+    "author": "username",
+    "score": 150,
+    "time": "2024-06-30T13:45:22Z",
+    "url": "https://news.ycombinator.com/item?id=123456",
+    "comments": 42
+  }
+]
+```
 
+- Each object includes: `id`, `title`, `author`, `score`, `time` (UTC), `url`, and `comments`.
+- Swagger UI is available for interactive API exploration in development mode.
+ 
 ---
 
 ## 💡 Usage
@@ -80,7 +115,7 @@ Swagger UI is available for interactive API exploration in development mode.
 
 ## 🛠️ Technologies Used
 
-- **C# / .NET 8+**
+- **C# / .NET 8**
 - ASP.NET Core Web API
 - MemoryCache for in-memory caching
 - xUnit, Moq for unit testing
@@ -113,14 +148,6 @@ The solution follows a layered architecture:
 - Returned stories may be fewer than requested if the upstream API omits or removes stories.
 - All time values are returned as UTC.
 - No persistent storage is used; all cache is in-memory and resets on application restart.
-- **Endpoint Parameter Assumptions:**
-  - The query parameter `n` in `/api/hackernews?n=VALUE` determines the number of top stories to return.
-  - The default value for `n` is 10 if not provided.
-  - The maximum allowed value for `n` is 100; any value above this is capped to 100.
-  - If `n` is less than 1, it is set to the default (10).
-  - Requests with invalid `n` values (negative, zero, or excessively high) are automatically adjusted and not rejected unless egregiously out of bounds.
-  - If no stories are found, a 404 response is returned.
-  - API is stateless and does not retain request context between calls.
 
 ---
 
