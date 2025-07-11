@@ -21,6 +21,7 @@ This project exposes a RESTful API endpoint designed to provide clients with a c
 - In-memory caching for best stories and individual story responses
 - Robust error handling and logging for API/network issues
 - Configurable parameters (e.g., number of stories, cache durations)
+- **Built-in API Rate Limiting Middleware** to protect the API and external resources
 - Unit tests for controllers and services
 - Swagger/OpenAPI documentation for HTTP endpoints
 
@@ -100,11 +101,39 @@ GET /api/hackernews?n=5
 
 ---
 
+## 🛡️ Rate Limiting
+
+This API leverages built-in rate limiting middleware (available in ASP.NET Core 7.0+) to prevent abuse and protect both the API and upstream resources.
+
+- **Default Policy:** Limits each client to a fixed number of requests per minute (configurable in `Program.cs`).
+- **Error Response:** If the limit is exceeded, the API responds with HTTP 429 Too Many Requests.
+- **Customization:** The rate limiting strategy and limits can be adjusted to fit deployment requirements.
+- **How it works:**  
+  The middleware tracks requests per client (typically by IP address or configured identity) and enforces the configured limits transparently.
+
+**Example rate limiting configuration (in `Program.cs`):**
+```csharp
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 20; // 20 requests per minute
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+});
+app.UseRateLimiter();
+```
+
+---
+
 ## 🛠️ Technologies Used
 
 - **C# / .NET 8**
 - ASP.NET Core Web API
 - MemoryCache for in-memory caching
+- **Rate Limiting Middleware** (ASP.NET Core built-in)
 - xUnit, Moq for unit testing
 - Swagger/OpenAPI for documentation
 
@@ -122,6 +151,7 @@ The solution follows a layered architecture:
 - All external calls to Hacker News use `HttpClientFactory` and async/await for efficiency.
 - SemaphoreSlim limits concurrent outbound requests for stability.
 - In-memory caching avoids redundant external API calls.
+- **Rate limiting ensures fair use of the API and avoids overwhelming external services.**
 - Logging is implemented at controller and service layers for observability.
 - Tests validate correctness and error handling paths.
 
@@ -144,6 +174,6 @@ The solution follows a layered architecture:
 - **Distributed Caching:** Use Redis or another distributed cache to enable scaling across multiple server instances.
 - **Resilient HTTP Strategies:** Add retry, backoff, and circuit breaker policies with Polly.
 - **Batch API Requests:** Optimize outbound network calls by batching requests (if supported by the Hacker News API).
-- **Rate Limiting:** Enforce rate limits to protect the API and external resources.
 - **Authentication and Authorization:** Secure endpoints for restricted environments.
 
+---
