@@ -2,6 +2,7 @@
 
 A coding challenge project built in **C#**, designed to interact with the Hacker News API and demonstrate clean coding, effective API usage, and modern .NET practices.
 
+
 ---
 
 ## 📝 Table of Contents
@@ -43,7 +44,7 @@ A coding challenge project built in **C#**, designed to interact with the Hacker
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (v6.0 or newer)
+- [.NET SDK](https://dotnet.microsoft.com/download) (v8.0 or newer)
 
 ### Installation
 
@@ -59,7 +60,7 @@ dotnet restore
 dotnet run --project HackerNews.Api
 ```
 
-The API will be available at `https://localhost:5001/api/hackernews` (adjust for your environment).
+The API will be available at `https://localhost:7222/api/hackernews` (adjust for your environment).
 
 ### API Usage
 
@@ -80,7 +81,7 @@ Swagger UI is available for interactive API exploration in development mode.
 
 ## 🛠️ Technologies Used
 
-- **C# / .NET 6+**
+- **C# / .NET 8+**
 - ASP.NET Core Web API
 - MemoryCache for in-memory caching
 - xUnit, Moq for unit testing
@@ -110,10 +111,8 @@ The solution follows a layered architecture:
 - The Hacker News API is publicly available and does not require authentication.
 - Only the "best stories" endpoint is required for the core functionality; other endpoints (e.g., comments, user details) are not implemented.
 - The API is primarily read-only; no write or mutation operations are supported.
-- The application is hosted in a trusted environment (no advanced security or rate limiting is enforced).
 - Returned stories may be fewer than requested if the upstream API omits or removes stories.
 - All time values are returned as UTC.
-- Cache durations and concurrency limits are set for demonstration and may be tuned for production.
 - No persistent storage is used; all cache is in-memory and resets on application restart.
 - **Endpoint Parameter Assumptions:**
   - The query parameter `n` in `/api/hackernews?n=VALUE` determines the number of top stories to return.
@@ -134,5 +133,4 @@ The solution follows a layered architecture:
 - **Batch API Requests:** Optimize outbound network calls by batching requests (if supported by the Hacker News API).
 - **Rate Limiting:** Enforce rate limits to protect the API and external resources.
 - **Authentication and Authorization:** Secure endpoints for restricted environments.
-- **User Input Validation Improvements:** Provide clearer feedback and error codes for out-of-bound parameter values.
 
