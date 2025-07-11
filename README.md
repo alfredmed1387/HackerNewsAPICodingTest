@@ -15,8 +15,6 @@ A coding challenge project built in **C#**, designed to interact with the Hacker
 - [Architecture](#architecture)
 - [Assumptions](#assumptions)
 - [Future Enhancements](#future-enhancements)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
