@@ -70,6 +70,47 @@ Swagger UI is available for interactive API exploration in development mode.
 
 ---
 
+## 🛣️ Endpoint
+
+### GET `/api/hackernews?n=VALUE`
+
+Returns a list of top Hacker News stories sorted by score.
+
+#### Parameter Validation
+
+- **n** (optional, integer): Number of top stories to return.
+  - **Default:** 10 (if not provided or invalid)
+  - **Minimum:** 1 (values less than 1 are set to 10)
+  - **Maximum:** 100 (values above 100 are capped to 100)
+  - Non-integer or negative values are adjusted to the default (10).
+  - If no stories are found, a `404 Not Found` response is returned.
+
+#### Example Request
+
+```http
+GET /api/hackernews?n=5
+```
+
+#### Example Response
+
+```json
+[
+  {
+    "id": 123456,
+    "title": "Example Hacker News Story",
+    "author": "username",
+    "score": 150,
+    "time": "2024-06-30T13:45:22Z",
+    "url": "https://news.ycombinator.com/item?id=123456",
+    "comments": 42
+  }
+]
+```
+
+- Each object includes: `id`, `title`, `author`, `score`, `time` (UTC), `url`, and `comments`.
+
+---
+
 ## 💡 Usage
 
 1. Run the API project.

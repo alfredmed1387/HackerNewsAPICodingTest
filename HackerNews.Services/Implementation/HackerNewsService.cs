@@ -125,6 +125,7 @@ namespace HackerNews.Services.Implementation
 
                         return new BestStoryDto
                         {
+                            Id = story.id,
                             Title = story.title ?? "",
                             Uri = story.url ?? "",
                             PostedBy = story.by ?? "",

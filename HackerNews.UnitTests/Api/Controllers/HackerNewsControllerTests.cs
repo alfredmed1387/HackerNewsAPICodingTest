@@ -31,8 +31,8 @@ namespace HackerNews.UnitTests.Api.Controllers
             // Arrange
             var stories = new List<BestStoryDto>
             {
-                new BestStoryDto { Title = "Story 1", Uri = "http://1", PostedBy = "user1", Time = DateTime.UtcNow, Score = 100, CommentCount = 10 },
-                new BestStoryDto { Title = "Story 2", Uri = "http://2", PostedBy = "user2", Time = DateTime.UtcNow, Score = 90, CommentCount = 5 }
+                new BestStoryDto { Id = 1, Title = "Story 1", Uri = "http://1", PostedBy = "user1", Time = DateTime.UtcNow, Score = 100, CommentCount = 10 },
+                new BestStoryDto { Id = 2, Title = "Story 2", Uri = "http://2", PostedBy = "user2", Time = DateTime.UtcNow, Score = 90, CommentCount = 5 }
             };
             _mockService.Setup(s => s.GetBestStoriesAsync( It.IsAny<int>())).ReturnsAsync(stories);
 
