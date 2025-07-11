@@ -77,13 +77,12 @@ GET /api/hackernews?n=5
 ```json
 [
   {
-    "id": 123456,
     "title": "Example Hacker News Story",
-    "author": "username",
+    "postedBy": "username",
     "score": 150,
     "time": "2024-06-30T13:45:22Z",
-    "url": "https://news.ycombinator.com/item?id=123456",
-    "comments": 42
+    "uri": "https://news.ycombinator.com/item?id=123456",
+    "commentCount": 42
   }
 ]
 ```
