@@ -87,7 +87,7 @@ GET /api/hackernews?n=5
 ]
 ```
 
-- Each object includes: `id`, `title`, `author`, `score`, `time` (UTC), `url`, and `comments`.
+- Each object includes: `title`, `postedBy`, `score`, `time` (UTC), `uri`, and `commentCount`.
 - Swagger UI is available for interactive API exploration in development mode.
  
 ---
