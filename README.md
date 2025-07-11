@@ -6,19 +6,6 @@ This project exposes a RESTful API endpoint designed to provide clients with a c
 
 ---
 
-## 📝 Table of Contents
-
-- [About](#about)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Endpoints](#endpoints)
-- [Technologies Used](#technologies-used)
-- [Architecture](#architecture)
-- [Assumptions](#assumptions)
-- [Future Enhancements](#future-enhancements)
-
----
-
 ## 📖 About
 
 **HackerNewsAPICodingTest** is a C#/.NET project crafted as a coding test. It showcases integration with the Hacker News API, focusing on maintainable architecture and best software engineering practices.
