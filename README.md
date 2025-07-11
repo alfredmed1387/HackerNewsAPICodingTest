@@ -2,6 +2,7 @@
 
 A coding challenge project built in **C#**, designed to interact with the Hacker News API and demonstrate clean coding, effective API usage, and modern .NET practices.
 
+This project exposes a RESTful API endpoint designed to provide clients with a customizable list of the top stories from Hacker News. The endpoint fetches, filters, and returns high-quality stories sorted by score, making it easy for users or client applications to access trending news content programmatically. The API returns key story details such as title, author, score, time, and number of comments, supporting efficient integration and display of Hacker News content in other applications or dashboards.
 
 ---
 
