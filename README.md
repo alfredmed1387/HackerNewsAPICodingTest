@@ -2,20 +2,7 @@
 
 A coding challenge project built in **C#**, designed to interact with the Hacker News API and demonstrate clean coding, effective API usage, and modern .NET practices.
 
----
-
-## 📝 Table of Contents
-
-- [About](#about)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Usage](#usage)
-- [Technologies Used](#technologies-used)
-- [Architecture](#architecture)
-- [Assumptions](#assumptions)
-- [Future Enhancements](#future-enhancements)
-- [Contributing](#contributing)
-- [License](#license)
+This project exposes a RESTful API endpoint designed to provide clients with a customizable list of the top stories from Hacker News. The endpoint fetches, filters, and returns high-quality stories sorted by score, making it easy for users or client applications to access trending news content programmatically. The API returns key story details such as title, author, score, time, and number of comments, supporting efficient integration and display of Hacker News content in other applications or dashboards.
 
 ---
 
@@ -43,7 +30,7 @@ A coding challenge project built in **C#**, designed to interact with the Hacker
 
 ### Prerequisites
 
-- [.NET SDK](https://dotnet.microsoft.com/download) (v6.0 or newer)
+- [.NET SDK](https://dotnet.microsoft.com/download) (v8.0)
 
 ### Installation
 
@@ -59,15 +46,50 @@ dotnet restore
 dotnet run --project HackerNews.Api
 ```
 
-The API will be available at `https://localhost:5001/api/hackernews` (adjust for your environment).
+The API will be available at `https://localhost:7222/api/hackernews` (adjust for your environment).
 
-### API Usage
+---
 
-- **GET** `/api/hackernews?n=20`  
-  Returns up to 20 best Hacker News stories, sorted by score.
+## 🛣️ Endpoints
 
-Swagger UI is available for interactive API exploration in development mode.
+### GET `/api/hackernews?n=VALUE`
+ 
+Returns a list of top Hacker News stories sorted by score.
+ 
+#### Parameter Validation
+ 
+ - **n** (optional, integer): Number of top stories to return.
+   - **Default:** 10 (if not provided or invalid)
+   - **Minimum:** 1 (values less than 1 are set to 10)
+   - **Maximum:** 100 (values above 100 are capped to 100)
+   - Non-integer or negative values are adjusted to the default (10).
+   - If no stories are found, a `404 Not Found` response is returned.
+ 
+#### Example Request
+ 
+```http
+GET /api/hackernews?n=5
+```
+ 
+#### Example Response
+ 
+```json
+[
+  {
+    "id": 123456,
+    "title": "Example Hacker News Story",
+    "author": "username",
+    "score": 150,
+    "time": "2024-06-30T13:45:22Z",
+    "url": "https://news.ycombinator.com/item?id=123456",
+    "comments": 42
+  }
+]
+```
 
+- Each object includes: `id`, `title`, `author`, `score`, `time` (UTC), `url`, and `comments`.
+- Swagger UI is available for interactive API exploration in development mode.
+ 
 ---
 
 ## 💡 Usage
@@ -80,7 +102,7 @@ Swagger UI is available for interactive API exploration in development mode.
 
 ## 🛠️ Technologies Used
 
-- **C# / .NET 6+**
+- **C# / .NET 8**
 - ASP.NET Core Web API
 - MemoryCache for in-memory caching
 - xUnit, Moq for unit testing
@@ -110,19 +132,9 @@ The solution follows a layered architecture:
 - The Hacker News API is publicly available and does not require authentication.
 - Only the "best stories" endpoint is required for the core functionality; other endpoints (e.g., comments, user details) are not implemented.
 - The API is primarily read-only; no write or mutation operations are supported.
-- The application is hosted in a trusted environment (no advanced security or rate limiting is enforced).
 - Returned stories may be fewer than requested if the upstream API omits or removes stories.
 - All time values are returned as UTC.
-- Cache durations and concurrency limits are set for demonstration and may be tuned for production.
 - No persistent storage is used; all cache is in-memory and resets on application restart.
-- **Endpoint Parameter Assumptions:**
-  - The query parameter `n` in `/api/hackernews?n=VALUE` determines the number of top stories to return.
-  - The default value for `n` is 10 if not provided.
-  - The maximum allowed value for `n` is 100; any value above this is capped to 100.
-  - If `n` is less than 1, it is set to the default (10).
-  - Requests with invalid `n` values (negative, zero, or excessively high) are automatically adjusted and not rejected unless egregiously out of bounds.
-  - If no stories are found, a 404 response is returned.
-  - API is stateless and does not retain request context between calls.
 
 ---
 
@@ -134,5 +146,4 @@ The solution follows a layered architecture:
 - **Batch API Requests:** Optimize outbound network calls by batching requests (if supported by the Hacker News API).
 - **Rate Limiting:** Enforce rate limits to protect the API and external resources.
 - **Authentication and Authorization:** Secure endpoints for restricted environments.
-- **User Input Validation Improvements:** Provide clearer feedback and error codes for out-of-bound parameter values.
 
